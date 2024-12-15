@@ -2,13 +2,16 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Fitness Companion</title>
+    <title>404 - Not Found</title>
+    <script>
+      // Redirect to index.html for Vue Router to handle
+      const currentLocation = window.location.href;
+      const basePath = window.location.origin + "/fitness-companion/"; // Adjust base path
+      window.location.replace(basePath + "#!" + window.location.pathname + window.location.search);
+    </script>
   </head>
   <body>
-    <script>
-      // Redirect all requests to index.html
-      window.location.href = "/fitness-companion/";
-    </script>
+    <h1>404 - Page Not Found</h1>
+    <p>Redirecting...</p>
   </body>
 </html>
