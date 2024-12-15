@@ -1,14 +1,11 @@
 <template>
   <div class="dashboard">
-    <h1>Fitness Dashboard</h1>
-    <div v-if="fitnessStore.loading">Loading...</div>
-    <div v-else-if="fitnessStore.error" class="error">{{ fitnessStore.error }}</div>
-    <div v-else-if="fitnessStore.dataSources">
-      <p>Data Providers</p>
-      <ul>
-        <li v-for="{ dataStreamId } in fitnessStore.dataSources">{{ dataStreamId }}</li>
-      </ul>
-    </div>
+    <h1>Data Types</h1>
+    <ul>
+      <li v-for="dataType in dataTypes" :key="dataType">
+        <router-link :to="`/dashboard/${dataType}`">{{ formatDataType(dataType) }}</router-link>
+      </li>
+    </ul>
   </div>
 </template>
 
@@ -22,10 +19,22 @@ const authStore = useAuthStore();
 const fitnessStore = useFitnessStore();
 const route = useRoute();
 
+const dataTypes = computed(() => [...new Set(fitnessStore.dataSources.map((source) => source.dataType.name))]);
+
+const formatDataType = (dataType) => {
+  return dataType.split(".").pop().replace("_", " ").toUpperCase();
+};
+
 onMounted(async () => {
   const authCode = route.query.code;
+
+  // Fetch access token if needed
   if (authCode) {
     await authStore.fetchAccessToken(authCode);
+  }
+
+  // Fetch data sources if not already loaded
+  if (!fitnessStore.dataSources.length) {
     await fitnessStore.fetchDataSources();
   }
 });

@@ -4,6 +4,7 @@ import { useRouter } from "vue-router";
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     accessToken: null,
+    isAuthenticated: false,
   }),
   actions: {
     login() {
@@ -58,9 +59,10 @@ export const useAuthStore = defineStore("auth", {
         const data = await response.json();
 
         if (data.access_token) {
-          this.accessToken = data.access_token; // Update store state
-          localStorage.setItem("accessToken", data.access_token); // Persist token
-          router.replace({ name: "Dashboard" }); // Navigate to dashboard
+          this.accessToken = data.access_token;
+          this.isAuthenticated = true;
+          localStorage.setItem("accessToken", data.access_token);
+          router.replace({ name: "Dashboard" });
         }
       } catch (error) {
         console.error("Error exchanging code for token:", error);
@@ -68,6 +70,7 @@ export const useAuthStore = defineStore("auth", {
     },
     logout() {
       this.accessToken = null;
+      this.isAuthenticated = false;
       localStorage.removeItem("accessToken");
     },
   },

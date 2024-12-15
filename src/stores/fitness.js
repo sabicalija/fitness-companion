@@ -1,8 +1,10 @@
 import { defineStore } from "pinia";
+import { useGoogleFitApi } from "@/composables/useGoogleFitApi";
 
 export const useFitnessStore = defineStore("fitness", {
   state: () => ({
     dataSources: [],
+    dataSet: null,
     loading: false,
     error: null,
   }),
@@ -11,25 +13,24 @@ export const useFitnessStore = defineStore("fitness", {
     async fetchDataSources() {
       this.loading = true;
       this.error = null;
-
-      const accessToken = localStorage.getItem("accessToken");
-      if (!accessToken) {
-        this.error = "User not authenticated";
-        this.loading = false;
-        return;
-      }
-
       try {
-        const response = await fetch("https://www.googleapis.com/fitness/v1/users/me/dataSources", {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-
-        if (!response.ok) throw new Error("Failed to fetch data sources");
-
-        const result = await response.json();
+        const { fetchDataSources } = useGoogleFitApi();
+        const result = await fetchDataSources();
         this.dataSources = result.dataSource || [];
+      } catch (error) {
+        this.error = error.message;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchDataSet(dataStreamId, startTimeNanos, endTimeNanos) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const { fetchDataSet } = useGoogleFitApi();
+        const result = await fetchDataSet(dataStreamId, startTimeNanos, endTimeNanos);
+        this.dataSet = result;
       } catch (error) {
         this.error = error.message;
       } finally {
@@ -39,6 +40,6 @@ export const useFitnessStore = defineStore("fitness", {
   },
 
   getters: {
-    filteredDataSources: (state) => (type) => state.dataSources.filter((ds) => ds.dataType.name === type),
+    getDataSourceByType: (state) => (type) => state.dataSources.filter((ds) => ds.dataType.name === type),
   },
 });

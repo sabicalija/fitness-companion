@@ -14,6 +14,12 @@ const routes = [
       requiresAuth: true,
     },
   },
+  {
+    path: "/dashboard/:dataType",
+    name: "DataTypeDetail",
+    component: () => import("@/views/DataTypeDetail.vue"),
+    props: true,
+  },
 ];
 
 const router = createRouter({
@@ -22,7 +28,7 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = localStorage.getItem("accessToken");
+  const isAuthenticated = !!localStorage.getItem("accessToken");
 
   // Handle GitHub Pages redirect query
   if (to.query.redirect) {
