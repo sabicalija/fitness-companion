@@ -22,7 +22,7 @@ const route = useRoute();
 const dataTypes = computed(() => [...new Set(fitnessStore.dataSources.map((source) => source.dataType.name))]);
 
 const formatDataType = (dataType) => {
-  return dataType.split(".").pop().replace("_", " ").toUpperCase();
+  return dataType.split(".").slice(2).join(" ").replace("_", " ").toUpperCase();
 };
 
 onMounted(async () => {
