@@ -1,0 +1,5 @@
+- Use uollowing tools:
+  - pnpm
+- Use following packages/frameworks:
+  - vite
+  - vue 3
