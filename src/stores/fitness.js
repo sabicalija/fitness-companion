@@ -1,9 +1,11 @@
 import { defineStore } from "pinia";
 import { useGoogleFitApi } from "@/composables/useGoogleFitApi";
+import { compressToUTF16, decompressFromUTF16 } from "lz-string";
 
 function saveToSessionStorage(key, data) {
   try {
-    sessionStorage.setItem(key, JSON.stringify(data));
+    const compressedData = compressToUTF16(JSON.stringify(data));
+    sessionStorage.setItem(key, compressedData);
   } catch (e) {
     if (e.name === "QuotaExceededError") {
       console.warn("Storage quota exceeded, dropping old data");
@@ -12,7 +14,8 @@ function saveToSessionStorage(key, data) {
       if (keys.length > 0) {
         delete data[keys[0]];
         // Retry saving after dropping old data
-        sessionStorage.setItem(key, JSON.stringify(data));
+        const compressedData = compressToUTF16(JSON.stringify(data));
+        sessionStorage.setItem(key, compressedData);
       }
     } else {
       throw e;
@@ -20,10 +23,18 @@ function saveToSessionStorage(key, data) {
   }
 }
 
+function loadFromSessionStorage(key) {
+  const compressedData = sessionStorage.getItem(key);
+  if (compressedData) {
+    return JSON.parse(decompressFromUTF16(compressedData));
+  }
+  return null;
+}
+
 export const useFitnessStore = defineStore("fitness", {
   state: () => ({
-    dataSources: JSON.parse(sessionStorage.getItem("dataSources")) || [],
-    dataSets: JSON.parse(sessionStorage.getItem("dataSets")) || {},
+    dataSources: loadFromSessionStorage("dataSources") || [],
+    dataSets: loadFromSessionStorage("dataSets") || {},
     loading: false,
     error: null,
   }),
