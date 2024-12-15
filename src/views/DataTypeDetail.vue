@@ -40,7 +40,7 @@ const dataType = route.params.dataType;
 const fitnessStore = useFitnessStore();
 
 // Extract state from store
-const dataSet = computed(() => fitnessStore.dataSet);
+const dataSet = computed(() => fitnessStore.getDataSetByType(dataType));
 const loading = computed(() => fitnessStore.loading);
 const error = computed(() => fitnessStore.error);
 
@@ -61,7 +61,7 @@ onMounted(async () => {
   const epoch = 0; // Unix epoch start time in nanoseconds
 
   // Fetch all data entries from the beginning of time to now
-  await fitnessStore.fetchDataSet(dataStreamId, epoch, now);
+  await fitnessStore.fetchDataSet(dataStreamId, epoch, now, dataType);
 });
 </script>
 

@@ -33,8 +33,8 @@ onMounted(async () => {
     await authStore.fetchAccessToken(authCode);
   }
 
-  // Fetch data sources if not already loaded
-  if (!fitnessStore.dataSources.length) {
+  // Fetch data sources if access token is available and data sources are not already loaded
+  if (authStore.accessToken && !fitnessStore.dataSources.length) {
     await fitnessStore.fetchDataSources();
   }
 });
