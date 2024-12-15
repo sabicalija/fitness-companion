@@ -1,7 +1,7 @@
-body {
+.dark {
   background-color: #333;
 }
 
-a {
-  color: #fff;
+.dark, .dark a {
+  color: #aaa;
 }
