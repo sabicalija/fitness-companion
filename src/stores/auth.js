@@ -9,7 +9,26 @@ export const useAuthStore = defineStore("auth", {
     login() {
       const CLIENT_ID = import.meta.env.VITE_CLIENT_ID;
       const REDIRECT_URI = import.meta.env.VITE_REDIRECT_URI;
-      const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=https://www.googleapis.com/auth/fitness.body.read`;
+      const SCOPES = [
+        "https://www.googleapis.com/auth/fitness.activity.read",
+        "https://www.googleapis.com/auth/fitness.blood_glucose.read",
+        "https://www.googleapis.com/auth/fitness.blood_pressure.read",
+        "https://www.googleapis.com/auth/fitness.body.read",
+        "https://www.googleapis.com/auth/fitness.heart_rate.read",
+        "https://www.googleapis.com/auth/fitness.body_temperature.read",
+        "https://www.googleapis.com/auth/fitness.location.read",
+        "https://www.googleapis.com/auth/fitness.nutrition.read",
+        "https://www.googleapis.com/auth/fitness.oxygen_saturation.read",
+        "https://www.googleapis.com/auth/fitness.reproductive_health.read",
+        "https://www.googleapis.com/auth/fitness.sleep.read",
+      ];
+      const oauthUrl = [
+        "https://accounts.google.com/o/oauth2/v2/auth?",
+        `client_id=${CLIENT_ID}&`,
+        `redirect_uri=${REDIRECT_URI}&`,
+        "response_type=code&",
+        `scope=${encodeURIComponent(SCOPES.join(" "))}`,
+      ].join("");
       window.location.href = oauthUrl;
     },
     async fetchAccessToken(authCode) {
