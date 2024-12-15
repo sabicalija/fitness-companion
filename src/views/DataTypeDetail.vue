@@ -1,21 +1,27 @@
 <template>
   <div>
     <h1>Data for {{ dataType }}</h1>
+    <div>
+      <label for="start-date">Start Date:</label>
+      <input type="date" id="start-date" v-model="startDate" @change="fetchData" />
+      <label for="end-date">End Date:</label>
+      <input type="date" id="end-date" v-model="endDate" @change="fetchData" />
+    </div>
     <div v-if="loading">Loading...</div>
     <div v-else-if="error">{{ error }}</div>
-    <div v-else-if="dataSet && dataSet.point && dataSet.point.length">
+    <div v-else-if="dataSet.point.length">
       <table>
         <thead>
           <tr>
             <th>Start Time</th>
             <th>End Time</th>
-            <th v-for="(value, key) in dataSet.point[0].value[0]" :key="key">
+            <th v-for="(value, key) in dataSet.point[0].value" :key="key">
               {{ key }}
             </th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="point in dataSet.point" :key="point.startTimeNanos">
+          <tr v-for="(point, index) in dataSet.point" :key="point.startTimeNanos">
             <td>{{ formatTime(point.startTimeNanos) }}</td>
             <td>{{ formatTime(point.endTimeNanos) }}</td>
             <td v-for="(value, key) in point.value[0]" :key="key">
@@ -30,7 +36,7 @@
 </template>
 
 <script setup>
-import { onMounted, computed } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useFitnessStore } from "@/stores/fitness";
 
@@ -39,30 +45,55 @@ const route = useRoute();
 const dataType = route.params.dataType;
 const fitnessStore = useFitnessStore();
 
-// Extract state from store
-const dataSet = computed(() => fitnessStore.getDataSetByType(dataType));
-const loading = computed(() => fitnessStore.loading);
-const error = computed(() => fitnessStore.error);
+const loading = ref(true);
+const error = ref(null);
+const dataSet = ref(null);
 
-// Format time from nanoseconds to a readable format
-const formatTime = (nanos) => new Date(Number(nanos) / 1_000_000).toLocaleString();
+const today = new Date();
+const startDate = ref(new Date(today.setDate(today.getDate() - 100)).toISOString().split("T")[0]);
+const endDate = ref(new Date().toISOString().split("T")[0]);
 
-// Fetch data on mount
-onMounted(async () => {
-  const dataStream = fitnessStore.getDataSourceByType(dataType)?.[0];
+const fetchData = async () => {
+  loading.value = true;
+  error.value = null;
 
-  if (!dataStream) {
-    console.error("Data source not found for type:", dataType);
-    return;
+  try {
+    const dataStream = fitnessStore.getDataSourceByType(dataType)?.[0];
+
+    if (!dataStream) {
+      throw new Error("Data source not found for type: " + dataType);
+    }
+
+    const dataStreamId = dataStream.dataStreamId;
+    const start = new Date(startDate.value).getTime() * 1_000_000; // Start date in nanoseconds
+    const end = new Date(endDate.value).getTime() * 1_000_000; // End date in nanoseconds
+
+    const lastFetchStartDate = fitnessStore.getLastFetchStartDateByType(dataType);
+    const lastFetchEndDate = fitnessStore.getLastFetchEndDateByType(dataType);
+
+    // Use cache if the date picker hasn't changed since the last fetch
+    if (lastFetchStartDate === start && lastFetchEndDate === end) {
+      dataSet.value = fitnessStore.getDataSetByType(dataType);
+    } else {
+      // Fetch data entries between the selected dates
+      await fitnessStore.fetchDataSet(dataStreamId, start, end, dataType);
+      dataSet.value = fitnessStore.getDataSetByType(dataType);
+    }
+  } catch (err) {
+    error.value = err.message;
+  } finally {
+    loading.value = false;
   }
+};
 
-  const dataStreamId = dataStream.dataStreamId;
-  const now = Date.now() * 1_000_000; // Current timestamp in nanoseconds
-  const epoch = 0; // Unix epoch start time in nanoseconds
+const formatTime = (nanoseconds) => {
+  const date = new Date(nanoseconds / 1_000_000);
+  return date.toLocaleString();
+};
 
-  // Fetch all data entries from the beginning of time to now
-  await fitnessStore.fetchDataSet(dataStreamId, epoch, now, dataType);
-});
+onMounted(fetchData);
+
+watch([startDate, endDate], fetchData);
 </script>
 
 <style></style>

@@ -35,6 +35,8 @@ export const useFitnessStore = defineStore("fitness", {
   state: () => ({
     dataSources: loadFromSessionStorage("dataSources") || [],
     dataSets: loadFromSessionStorage("dataSets") || {},
+    lastFetchStartDate: loadFromSessionStorage("lastFetchStartDate") || {},
+    lastFetchEndDate: loadFromSessionStorage("lastFetchEndDate") || {},
     loading: false,
     error: null,
   }),
@@ -61,17 +63,17 @@ export const useFitnessStore = defineStore("fitness", {
     },
 
     async fetchDataSet(dataStreamId, startTimeNanos, endTimeNanos, dataType) {
-      if (this.dataSets[dataType]) {
-        return this.dataSets[dataType];
-      }
-
       this.loading = true;
       this.error = null;
       try {
         const { fetchDataSet } = useGoogleFitApi();
         const result = await fetchDataSet(dataStreamId, startTimeNanos, endTimeNanos);
         this.dataSets[dataType] = result;
+        this.lastFetchStartDate[dataType] = startTimeNanos;
+        this.lastFetchEndDate[dataType] = endTimeNanos;
         saveToSessionStorage("dataSets", this.dataSets);
+        saveToSessionStorage("lastFetchStartDate", this.lastFetchStartDate);
+        saveToSessionStorage("lastFetchEndDate", this.lastFetchEndDate);
         return result;
       } catch (error) {
         this.error = error.message;
@@ -84,5 +86,7 @@ export const useFitnessStore = defineStore("fitness", {
   getters: {
     getDataSourceByType: (state) => (type) => state.dataSources.filter((ds) => ds.dataType.name === type),
     getDataSetByType: (state) => (type) => state.dataSets[type],
+    getLastFetchStartDateByType: (state) => (type) => state.lastFetchStartDate[type],
+    getLastFetchEndDateByType: (state) => (type) => state.lastFetchEndDate[type],
   },
 });
