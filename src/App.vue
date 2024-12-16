@@ -4,6 +4,7 @@
       <ul>
         <li><router-link to="/">Home</router-link></li>
         <li><router-link to="/dashboard">Dashboard</router-link></li>
+        <li><router-link to="/weight">Weight</router-link></li>
         <li>
           <button @click="toggleDarkMode">{{ isDark ? "Light" : "Dark" }} Mode</button>
         </li>

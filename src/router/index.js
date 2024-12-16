@@ -20,6 +20,14 @@ const routes = [
     component: () => import("@/views/DataTypeDetail.vue"),
     props: true,
   },
+  {
+    path: "/weight",
+    name: "Weight",
+    component: () => import("@/views/Weight.vue"),
+    meta: {
+      requiresAuth: true,
+    },
+  },
 ];
 
 const router = createRouter({
